@@ -18,7 +18,7 @@
 <p align="center">
   <a href="demo.gif" target="_blank">
     <img src="https://github.com/HitDrama/CompuVision-Face-ID-with-DeepFace-FaceMesh/blob/main/static/imgs/test.gif" alt="Click to view full demo" style="width:100%; max-width:800px;" />
-  </br>
+    
    <em>📝 Click vào ảnh trên hoặc commit bên dưới để xem chi tiết quá trình xác thực.</em>
   </a>
 </p>
