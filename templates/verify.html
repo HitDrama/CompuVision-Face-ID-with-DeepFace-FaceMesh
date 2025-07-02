@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Xác thực sinh trắc học</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='/css/styles.css')}}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+
+<body>
+    {% block content %} {% endblock %}
+
+    <!-- JS -->
+    <script src="{{ url_for('static', filename='files/face_mesh.js') }}"></script>
+    <script src="{{ url_for('static', filename='files/webcam.js') }}"></script>
+    <script>
+        async function startFaceDetection() {
+            const staticFilesPath = "{{ url_for('static', filename='files/') }}";
+            const faceMesh = new FaceMesh({
+                locateFile: (file) => `${staticFilesPath}${file}`
+            });
+            faceMesh.setOptions({ maxNumFaces: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+            faceMesh.onResults(results => {
+                faceDetected = results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0;
+                if (faceDetected) {
+                    faceInOval = isFaceInOval(results.multiFaceLandmarks[0]);
+                    if (faceInOval && !actionCompleted) checkAction(results.multiFaceLandmarks[0]);
+                } else {
+                    faceInOval = false;
+                }
+                drawOverlay();
+            });
+
+            const detectFace = async () => {
+                if (video.readyState === 4) await faceMesh.send({ image: video });
+                requestAnimationFrame(detectFace);
+            };
+            detectFace();
+        }
+        function sendImageToServer(imageData) {
+            $.ajax({
+                url: '/update-face',
+                method: 'POST',
+                headers: { 'X-CSRFToken': $('meta[name="csrf-token"]').attr('content') },
+                contentType: 'application/json',
+                data: JSON.stringify({ image: imageData }),
+                success: function (data) {
+                    if (data.status === 'success') {
+                        alert(data.message); // Hiển thị thông báo thành công
+                        window.location.href = data.previous_url;
+                    } else if (data.status === 'error') {
+                        alert(data.message); // Hiển thị thông báo lỗi
+                        errorMsg.textContent = data.message; // Hiển thị lỗi trên giao diện
+                        errorMsg.style.display = 'block'; // Hiện phần tử lỗi
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định. Vui lòng thử lại.";
+                    let errorData = JSON.parse(xhr.responseText);
+                    if (xhr.status === 400 || xhr.status === 500) {
+                        errorMessage = errorData.message || errorMessage;
+                        window.location.reload(); // Tải lại trang
+                    } else if (xhr.status === 403) {
+                        errorMessage = errorData.message || errorMessage;
+                        window.location.reload(); // Tải lại trang
+                    }
+                    alert(errorMessage)
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>

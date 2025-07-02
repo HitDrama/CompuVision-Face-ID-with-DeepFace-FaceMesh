@@ -1,0 +1,13 @@
+Flask==2.3.3 
+Flask-WTF==1.2.1 
+requests==2.32.3
+reportlab==4.2.2
+pymysql
+flask_sqlalchemy
+flask-security-too
+flask-mail
+numpy
+flask-bcrypt
+Werkzeug
+deepface
+bcrypt 
